@@ -1,115 +1,123 @@
 "use strict";
 
 class KeyboardInput {
+  constructor(ae) {
+    if(!ae){
+      throw new Error("No audio engine defined, KeyboardInput devices need an audio engine to work.")
+    }
+    this.OCTAVE_KEY_MAP = ["+", "-"];
+    this.NOTE_KEY_MAP = ["a", "w", "s", "d", "e", "f", "t", "g", "y", "h", "u", "j"]; // a = C, w = C# etc.
+    this.currentKeysDown = {};
+    this.octave = 3; // 0 represents first octave
+    this.audioEngine = ae;
 
-}
-
-
-const getFrequency = keyNumber => {
-  return 440 * Math.pow(2, ((keyNumber-49)/12));
-};
-
-const octaveKeyMap = ["+", "-"];
-const noteKeyMap = ["a", "w", "s", "d", "e", "f", "t", "g", "y", "h", "u", "j"]; // a = C, w = C# etc.
-
-let currentKeysDown = {};
-let previousKeysDown = [];
-let octave = 3; // 0 represents first octave
-let oscillators = {};
-let gainNodes = {};
-
-const audioCtx = new window.AudioContext();
-
-const getKeyNumber = key => {
-  return (noteKeyMap.indexOf(key)+1) + octave * 12 + 3;
-};
-
-const getRealOctave = oct => {
-  return octave + 1;
-};
-
-const updateGain = () => {
-  const notesDownCount = Object.keys(currentKeysDown).length
-  if(notesDownCount > 0 && Object.keys(gainNodes).length > 0) {
-    const relativeGain = 0.3// (1 / notesDownCount);
-    for (const gn in gainNodes) {
-      gainNodes[gn].gain.setValueAtTime(relativeGain, audioCtx.currentTime);
-    };
+    document.addEventListener("keydown", evt => {
+      this.handleKeyPressDown(evt);
+    });
+    document.addEventListener("keyup", evt => {
+      this.handleKeyPressUp(evt);
+    });
   }
-};
 
-const updateOscillators = (key, isNew) => {
-  if (isNew) {
-    const noteNumber = getKeyNumber(key)
-    const freq = getFrequency(noteNumber);
-    currentKeysDown[key] = 1;
-    const osc = audioCtx.createOscillator();
-    const gainNode = audioCtx.createGain();
-
-    osc.type = "square";
-    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-    
-    osc.connect(gainNode);
-    gainNode.connect(audioCtx.destination);
-    oscillators[key] = osc;
-    gainNodes[key] = gainNode;
-    updateGain();
-    osc.start();
-  } else {
-    delete currentKeysDown[key];
-    if(oscillators[key]){
-      oscillators[key].stop();
-      delete oscillators[key];
-      delete gainNodes[key];
-      updateGain();
+  handleKeyPressDown(evt) {
+    const key = evt.key;
+    if(!evt.repeat && this.currentKeysDown[key] === undefined && this.NOTE_KEY_MAP.indexOf(key) > -1){
+      this.audioEngine.updateOscillators(this.getKeyNumber(key), true, this.currentKeysDown);
+    }
+    if (this.OCTAVE_KEY_MAP.indexOf(key) > -1){
+      this.changeOctave(key);
     }
   }
-  console.log("keys:", currentKeysDown);
-  console.log("oscs:", oscillators);
+
+  handleKeyPressUp (evt) {
+    const key = evt.key;
+    if(this.NOTE_KEY_MAP.indexOf(key) > -1) {
+      this.audioEngine.updateOscillators(this.getKeyNumber(key), false, this.currentKeysDown);
+    }
+  }
+
+  getKeyNumber(key) {
+    return (this.NOTE_KEY_MAP.indexOf(key)+1) + this.octave * 12 + 23;
+  }
+
+  getRealOctave() {
+    return this.octave + 1;
+  }
+
+  changeOctave(key) {
+    if (key === "+") {
+      this.octave++;
+    } else {
+      this.octave--;
+    }
+    if (this.octave < 0) {
+      this.octave = 0;
+    }
+    if (this.octave > 7) {
+      this.octave = 7;
+    }
+    console.log("octave:", this.getRealOctave());
+  }
+}
+
+class AudioEngine {
+  constructor() {
+    this.oscillators = {};
+    this.gainNodes = {};
+    this.audioCtx = new window.AudioContext();
+  }
+
+  updateGain(currentKeysDown) {
+    const notesDownCount = Object.keys(currentKeysDown).length
+    if(notesDownCount > 0 && Object.keys(this.gainNodes).length > 0) {
+      const relativeGain = 0.3// (1 / notesDownCount);
+      for (const gn in this.gainNodes) {
+        this.gainNodes[gn].gain.setValueAtTime(relativeGain, this.audioCtx.currentTime);
+      };
+    }
+  }
+
+  updateOscillators(key, isNew, currentKeysDown) {
+    if (isNew) {
+      const freq = this.getFrequencyForKey(key);
+      currentKeysDown[key] = 1;
+      const osc = this.audioCtx.createOscillator();
+      const gainNode = this.audioCtx.createGain();
+
+      osc.type = "square";
+      osc.frequency.setValueAtTime(freq, this.audioCtx.currentTime);
+      
+      osc.connect(gainNode);
+      gainNode.connect(this.audioCtx.destination);
+      this.oscillators[key] = osc;
+      this.gainNodes[key] = gainNode;
+      this.updateGain(currentKeysDown);
+      osc.start();
+    } else {
+      delete currentKeysDown[key];
+      if(this.oscillators[key]){
+        this.oscillators[key].stop();
+        delete this.oscillators[key];
+        delete this.gainNodes[key];
+        this.updateGain(currentKeysDown);
+      }
+    }
+    console.log("keys:", this.currentKeysDown);
+    console.log("oscs:", this.oscillators);
+  }
+
+  getFrequencyForKey(keyNumber) {
+    return 440 * Math.pow(2, ((keyNumber-69)/12));
+  }
 };
 
-const changeOctave = key => {
-  if (key === "+") {
-    octave++;
-  } else {
-    octave--;
+class OSC {
+  constructor() {
+    
   }
-  if (octave < 0) {
-    octave = 0;
-  }
-  if (octave > 7) {
-    octave = 7;
-  }
-  console.log("octave:", getRealOctave());
-};
+}
 
-const handleKeyPress = evt => {
-  const key = evt.key;
-  if(!evt.repeat && currentKeysDown[key] === undefined && noteKeyMap.indexOf(key) > -1){
-    updateOscillators(key, true);
-  }
-  if (octaveKeyMap.indexOf(key) > -1){
-    changeOctave(key);
-  }
-};
-
-const updateCurrentKeysDown = evt => {
-  const key = evt.key;
-  if(noteKeyMap.indexOf(key) > -1) {
-    updateOscillators(key, false);
-  }
-};
-
-const addListeners = () => {
-  document.addEventListener("keydown", evt => {
-    handleKeyPress(evt);
-  });
-  document.addEventListener("keyup", evt => {
-    updateCurrentKeysDown(evt);
-  });
-};
-
-//eslint-disable-next-line
 const main = () => {
-  addListeners();
+  const ae = new AudioEngine();
+  const keyboard = new KeyboardInput(ae);
 };
