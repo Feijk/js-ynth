@@ -6,7 +6,7 @@ class KeyboardInput {
       throw new Error("No audio engine defined, KeyboardInput devices need an audio engine to work.")
     }
     this.OCTAVE_KEY_MAP = ["+", "-"];
-    this.NOTE_KEY_MAP = ["a", "w", "s", "d", "e", "f", "t", "g", "y", "h", "u", "j"]; // a = C, w = C# etc.
+    this.NOTE_KEY_MAP = ["a", "w", "s", "e", "d", "f", "t", "g", "y", "h", "u", "j"]; // a = C, w = C# etc.
     this.currentKeysDown = {};
     this.octave = 3; // 0 represents first octave
     this.audioEngine = ae;
