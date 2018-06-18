@@ -20,7 +20,13 @@ class KeyboardInput {
       this.handleKeyPressUp(evt);
     });
   }
-
+  /**
+   * Some easy 2 note chords on the keyboard for testing
+   * synth sounds:
+   * EU
+   * FH
+   * AG
+   */
   handleKeyPressDown(evt) {
     const key = evt.key;
     if(!evt.repeat && this.currentKeysDown[this.getKeyNumber(key)] === undefined && this.NOTE_KEY_MAP.indexOf(key) > -1){
@@ -85,11 +91,11 @@ class AudioEngine {
       currentKeysDown[key] = 1;
 
       const freq1 = this.getFrequencyForKey(key);
-      const osc1 = new OSC(4, "sawtooth", this.audioCtx);
+      const osc1 = new OSC(2, "sawtooth", this.audioCtx);
       osc1.setFrequency(freq1);
 
-      const freq2 = this.getFrequencyForKey(key+24);
-      const osc2 = new OSC(2, "square", this.audioCtx);
+      const freq2 = this.getFrequencyForKey(key-12);
+      const osc2 = new OSC(2, "sawtooth", this.audioCtx);
       osc2.setFrequency(freq2);
 
       this.playingNotes[key] = [osc1, osc2];
@@ -133,7 +139,7 @@ class OSC {
       const voice = this.audioCtx.createOscillator();
       voice.type = this.waveForm;
       voice.connect(this.outputGain);
-      voice.detune.setValueAtTime(i*16, this.audioCtx.currentTime);
+      voice.detune.setValueAtTime(i*8, this.audioCtx.currentTime);
       this.oscs.push(voice);
     }
     this.outputGain.connect(this.audioCtx.destination);
