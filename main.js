@@ -64,6 +64,7 @@ class KeyboardInput {
 
 class AudioEngine {
   constructor() {
+    this.playingNotes = {};
     this.oscillators = {};
     this.gainNodes = {};
     this.audioCtx = new window.AudioContext();
@@ -81,31 +82,30 @@ class AudioEngine {
 
   updateOscillators(key, isNew, currentKeysDown) {
     if (isNew) {
-      const freq = this.getFrequencyForKey(key);
       currentKeysDown[key] = 1;
-      const osc = this.audioCtx.createOscillator();
-      const gainNode = this.audioCtx.createGain();
 
-      osc.type = "square";
-      osc.frequency.setValueAtTime(freq, this.audioCtx.currentTime);
-      
-      osc.connect(gainNode);
-      gainNode.connect(this.audioCtx.destination);
-      this.oscillators[key] = osc;
-      this.gainNodes[key] = gainNode;
-      this.updateGain(currentKeysDown);
-      osc.start();
+      const freq1 = this.getFrequencyForKey(key);
+      const osc1 = new OSC(4, "sawtooth", this.audioCtx);
+      osc1.setFrequency(freq1);
+
+      const freq2 = this.getFrequencyForKey(key+24);
+      const osc2 = new OSC(2, "square", this.audioCtx);
+      osc2.setFrequency(freq2);
+
+      this.playingNotes[key] = [osc1, osc2];
+
+      osc1.start();
+      osc2.start();
     } else {
       delete currentKeysDown[key];
-      if(this.oscillators[key]){
-        this.oscillators[key].stop();
-        delete this.oscillators[key];
-        delete this.gainNodes[key];
-        this.updateGain(currentKeysDown);
+      if(this.playingNotes[key]){
+        this.playingNotes[key][0].stop(); //stop osc1
+        this.playingNotes[key][1].stop(); //stop osc2
+        delete this.playingNotes[key];
       }
     }
-    console.log("keys:", this.currentKeysDown);
-    console.log("oscs:", this.oscillators);
+    console.log("keys:", currentKeysDown, "isNew:", isNew);
+    console.log("oscs:", this.playingNotes);
   }
 
   getFrequencyForKey(keyNumber) {
@@ -114,8 +114,47 @@ class AudioEngine {
 };
 
 class OSC {
-  constructor() {
-    
+  constructor(numVoices, waveForm, audioCtx) {
+    this.audioCtx = audioCtx;
+    this.voices = numVoices || 2;
+    this.oscs = [];
+    this.waveForm = waveForm;
+    this.outputGain = this.audioCtx.createGain();
+    this.setup();
+  }
+
+  setGain(value) {
+    this.outputGain.gain.setValueAtTime(value, this.audioCtx.currentTime);
+  }
+
+  setup() {
+    this.setGain(0.1);
+    for (let i = 0; i < this.voices; i++) {
+      const voice = this.audioCtx.createOscillator();
+      voice.type = this.waveForm;
+      voice.connect(this.outputGain);
+      voice.detune.setValueAtTime(i*16, this.audioCtx.currentTime);
+      this.oscs.push(voice);
+    }
+    this.outputGain.connect(this.audioCtx.destination);
+  }
+
+  setFrequency(freq) {
+    this.oscs.forEach(osc => {
+      osc.frequency.setValueAtTime(freq, this.audioCtx.currentTime);
+    });
+  }
+
+  start() {
+    this.oscs.forEach(osc => {
+      osc.start();
+    });
+  }
+
+  stop() {
+    this.oscs.forEach(osc => {
+      osc.stop();
+    });
   }
 }
 
