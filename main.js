@@ -12,16 +12,18 @@ class KeyboardInput {
     this.audioEngine = ae;
 
     document.addEventListener("keydown", evt => {
+      //console.log("DOWN", evt);
       this.handleKeyPressDown(evt);
     });
     document.addEventListener("keyup", evt => {
+      //console.log("UP", evt);
       this.handleKeyPressUp(evt);
     });
   }
 
   handleKeyPressDown(evt) {
     const key = evt.key;
-    if(!evt.repeat && this.currentKeysDown[key] === undefined && this.NOTE_KEY_MAP.indexOf(key) > -1){
+    if(!evt.repeat && this.currentKeysDown[this.getKeyNumber(key)] === undefined && this.NOTE_KEY_MAP.indexOf(key) > -1){
       this.audioEngine.updateOscillators(this.getKeyNumber(key), true, this.currentKeysDown);
     }
     if (this.OCTAVE_KEY_MAP.indexOf(key) > -1){
@@ -31,7 +33,7 @@ class KeyboardInput {
 
   handleKeyPressUp (evt) {
     const key = evt.key;
-    if(this.NOTE_KEY_MAP.indexOf(key) > -1) {
+    if(!evt.repeat && this.NOTE_KEY_MAP.indexOf(key) > -1) {      
       this.audioEngine.updateOscillators(this.getKeyNumber(key), false, this.currentKeysDown);
     }
   }
