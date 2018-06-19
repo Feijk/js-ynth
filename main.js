@@ -194,7 +194,7 @@ class OSC {
   }
 }
 
-class MIDI {
+class MIDIKeyboard {
   constructor(midiAccess, ae) {
     this.inputs = midiAccess.inputs.values();
     this.audioEngine = ae;
@@ -241,7 +241,7 @@ const main = async () => {
   const keyboard = new KeyboardInput(ae);
   try {
     const midiAccess = await navigator.requestMIDIAccess({ sysex: true });
-    const midi = new MIDI(midiAccess, ae);
+    const midi = new MIDIKeyboard(midiAccess, ae);
   } catch (e) {
     console.error("Failed to get MIDI access ", e);
   }
