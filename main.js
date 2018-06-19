@@ -156,6 +156,12 @@ class OSC {
     this.oscs = [];
     this.waveForm = waveForm;
     this.outputGain = this.audioCtx.createGain();
+    this.gain = 0.1;
+    this.attackTime = 0.01;
+    this.decayTime = 0.5;
+    this.sustainLevel = 0.08;
+    this.releaseTime = 1.4;
+    this.ADSRState = 0; // 0=A, 1=D, 2=S, 3=R
     this.setup();
   }
 
@@ -164,7 +170,7 @@ class OSC {
   }
 
   setup() {
-    this.setGain(0.1);
+    this.setGain(0);
     for (let i = 0; i < this.voices; i++) {
       const voice = this.audioCtx.createOscillator();
       voice.type = this.waveForm;
@@ -181,16 +187,44 @@ class OSC {
     });
   }
 
+  // ADSR state transitions
+  AState() {
+    this.ADSRState = 0;
+    this.outputGain.gain.linearRampToValueAtTime(this.gain, this.audioCtx.currentTime + this.attackTime);
+    window.setTimeout(this.DState.bind(this), this.attackTime*1000);
+  }
+
+  DState() {
+    this.ADSRState = 1;
+    this.outputGain.gain.linearRampToValueAtTime(this.sustainLevel, this.audioCtx.currentTime + this.decayTime);
+    window.setTimeout(this.SState.bind(this), this.decayTime*1000);
+  }
+
+  SState() {
+    this.ADSRState = 2;
+  }
+
+  RState() {
+    this.ADSRState = 3;
+    this.outputGain.gain.linearRampToValueAtTime(0, this.audioCtx.currentTime + this.releaseTime);
+    window.setTimeout(this.clearAfterRelease.bind(this), this.releaseTime*1000);
+  }
+
   start() {
     this.oscs.forEach(osc => {
       osc.start();
     });
+    this.AState();
   }
 
-  stop() {
+  clearAfterRelease() {
     this.oscs.forEach(osc => {
       osc.stop();
     });
+  }
+
+  stop() {
+    this.RState();
   }
 }
 
