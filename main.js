@@ -121,11 +121,11 @@ class AudioEngine {
       currentKeysDown[key] = 1;
 
       const freq1 = this.getFrequencyForKey(key);
-      const osc1 = new OSC(2, "sawtooth", this.audioCtx);
+      const osc1 = new OSC(2, "sine", this.audioCtx);
       osc1.setFrequency(freq1);
 
       const freq2 = this.getFrequencyForKey(key - 12);
-      const osc2 = new OSC(2, "sawtooth", this.audioCtx);
+      const osc2 = new OSC(2, "sine", this.audioCtx);
       osc2.setFrequency(freq2);
 
       this.playingNotes[key] = [osc1, osc2];
@@ -142,8 +142,8 @@ class AudioEngine {
     }
     console.log("keys:", currentKeysDown, "isNew:", isNew);
     console.log("oscs:", this.playingNotes);
-  }
-
+  
+}
   getFrequencyForKey(keyNumber) {
     return 440 * Math.pow(2, (keyNumber - 69) / 12);
   }
@@ -156,11 +156,11 @@ class OSC {
     this.oscs = [];
     this.waveForm = waveForm;
     this.outputGain = this.audioCtx.createGain();
-    this.gain = 0.1;
+    this.gain = 0.05;
     this.attackTime = 0.01;
     this.decayTime = 0.5;
-    this.sustainLevel = 0.08;
-    this.releaseTime = 1.4;
+    this.sustainLevel = 0.03;
+    this.releaseTime = 1;
     this.ADSRState = 0; // 0=A, 1=D, 2=S, 3=R
     this.setup();
   }
@@ -270,7 +270,22 @@ class MIDIKeyboard {
   }
 }
 
+const choosePatch = (e) => {
+  const fileInput = e.target;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const contents = JSON.parse(reader.result);
+    console.log("Patch file contents:", contents);
+  };
+  reader.readAsText(fileInput.files[0]);
+};
+
+const addEventListeners = () => {
+  document.getElementById("synthPatchDialog").addEventListener("change", choosePatch);
+};
+
 const main = async () => {
+  addEventListeners();
   const ae = new AudioEngine();
   const keyboard = new KeyboardInput(ae);
   try {

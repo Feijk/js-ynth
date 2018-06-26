@@ -2,10 +2,56 @@
   box-sizing: border-box;
 }
 body {
-  padding: 0;
+  padding: 10px;
   margin: 0;
+  background-color: #021722;
+  color: #009B8B;
+  font-family: "Open Sans", sans-serif;
 }
 
 canvas {
   display: block;
+}
+
+.h-wrapper {
+  display: flex;
+  flex: 1 100%;
+}
+
+.box {
+  /*border: solid 1px #fff;*/
+  width: 365px;
+  margin-bottom: 10px;
+  margin-right: 10px;
+}
+
+.unit {
+  background-color: #11242F;
+}
+
+.logo {
+  height: 70px;
+  margin: 10px;
+}
+
+.osc1 {
+  height: 170px;
+  margin-bottom: 10px;
+}
+
+.osc2 {
+  height: 170px;
+}
+
+.patchInput {
+  width: 0.1px;
+  height: 0.1px;
+  opacity: 0;
+  overflow: hidden;
+  position: absolute;
+  z-index: -1;
+}
+
+.patchInput + label {
+  font-size: 12px;
 }
