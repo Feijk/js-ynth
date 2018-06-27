@@ -275,6 +275,7 @@ const choosePatch = (e) => {
   const reader = new FileReader();
   reader.onload = () => {
     const contents = JSON.parse(reader.result);
+    document.getElementById("patchName").innerHTML = contents.jsyPatch.name;
     console.log("Patch file contents:", contents);
   };
   reader.readAsText(fileInput.files[0]);

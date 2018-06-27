@@ -43,6 +43,12 @@ canvas {
   height: 170px;
 }
 
+.patchWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .patchInput {
   width: 0.1px;
   height: 0.1px;
@@ -54,4 +60,20 @@ canvas {
 
 .patchInput + label {
   font-size: 12px;
+}
+
+.patchNameField {
+  background-color: #11242F;
+  border: solid 1px #016D71;
+  padding: 9px;
+  font-size: 12px;
+  width: 100%;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.openIcon {
+  height: 36px;
+  display: block;
 }
