@@ -101,6 +101,8 @@ class AudioEngine {
     this.oscillators = {};
     this.gainNodes = {};
     this.audioCtx = new window.AudioContext();
+    this.OSC1Switch = document.getElementById("toggle-osc-1");
+    this.OSC2Switch = document.getElementById("toggle-osc-2");
   }
 
   updateGain(currentKeysDown) {
@@ -129,14 +131,14 @@ class AudioEngine {
       osc2.setFrequency(freq2);
 
       this.playingNotes[key] = [osc1, osc2];
-
-      osc1.start();
-      osc2.start();
+      console.log("OSC1 is on:", this.OSC1Switch.enabled, "OSC2 is on:", this.OSC2Switch.enabled);
+      this.OSC1Switch.enabled && osc1.start();
+      this.OSC2Switch.enabled && osc2.start();
     } else {
       delete currentKeysDown[key];
       if (this.playingNotes[key]) {
-        this.playingNotes[key][0].stop(); //stop osc1
-        this.playingNotes[key][1].stop(); //stop osc2
+        this.OSC1Switch.enabled && this.playingNotes[key][0].stop(); //stop osc1
+        this.OSC2Switch.enabled && this.playingNotes[key][1].stop(); //stop osc2
         delete this.playingNotes[key];
       }
     }
@@ -281,12 +283,22 @@ const choosePatch = (e) => {
   reader.readAsText(fileInput.files[0]);
 };
 
+const savePatch = (e) => {
+  console.log("Save patch:");
+};
+
 const addEventListeners = () => {
   document.getElementById("synthPatchDialog").addEventListener("change", choosePatch);
+  document.getElementById("savePatchBtn").addEventListener("click", savePatch);
+};
+
+const registerCustomElements = () => {
+  customElements.define("jsy-checkbox", JsyCheckBox);
 };
 
 const main = async () => {
   addEventListeners();
+  registerCustomElements();
   const ae = new AudioEngine();
   const keyboard = new KeyboardInput(ae);
   try {

@@ -16,25 +16,32 @@
           <input type="file" name="patchFile" accept="text/json" id="synthPatchDialog" class="patchInput">
           <span id="patchName" class="patchNameField">init patch</span>
           <label for="synthPatchDialog"><img class="openIcon" src="img/open_icon.svg"></label>
-          <label for="synthPatchDialog"><img class="openIcon" src="img/open_icon.svg"></label>
+          <label id="savePatchBtn"><img class="openIcon" src="img/save_icon.svg"></label>
         </div>
       </div>
       <div class="middle h-wrapper">
         <div class="oscs box">
           <div class="osc1 unit">
-            
+            <h4 class="unit-header">OSC 1</h4>
+            <jsy-checkbox class="toggle-osc" id="toggle-osc-1"/>
           </div>
           <div class="osc2 unit">
-            
+            <h4 class="unit-header">OSC 2</h4>
+            <jsy-checkbox class="toggle-osc" id="toggle-osc-2"/>
           </div>
         </div>
-        <div class="amp-env box unit"></div>
-        <div class="filter box unit"></div>
+        <div class="amp-env box unit">
+          <h4 class="unit-header">AMP ENVELOPE</h4>
+        </div>
+        <div class="filter box unit">
+          <h4 class="unit-header">FILTER</h4>
+        </div>
       </div>
       <div class="bottom h-wrapper"></div>
     </div>
   </div>
   <script type="text/javascript" src="./main.js"></script>
+  <script type="text/javascript" src="./components/jsy-checkbox/index.js"></script>
 </body>
 
 </html>
